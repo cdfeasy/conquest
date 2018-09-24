@@ -32,7 +32,7 @@ class ConquestController {
     @GetMapping(value = "/greeting/img/{imageId}")
     @ResponseBody
     fun helloWorld(@PathVariable imageId:String):ByteArray  {
-        var image = ImageIO.read(File("c:/tmp/orig.jpg"))
+        var image = ImageIO.read(this.javaClass.getResourceAsStream("/orig.jpg"))
         var image1 = BufferedImage(image.width, image.height, BufferedImage.TYPE_INT_RGB)
         var g = image1.graphics as Graphics2D
 
@@ -55,6 +55,12 @@ class ConquestController {
         ImageIO.write(image1,"png",out);
 
         return out.toByteArray()
+    }
+
+    @GetMapping(value = "/greeting/bla/{coord}", headers = arrayOf("x-requested-with=XMLHttpRequest"))
+    fun bla(@PathVariable coord:String)  {
+        System.out.println(coord)
+//        return "blabla"
     }
 
 }

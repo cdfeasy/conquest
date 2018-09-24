@@ -6,6 +6,56 @@
 </head>
 <body>
 <p th:text="'Hello, ' + ${name} + '!'" />
-<img src="/greeting/img/42" alt="car_image"/>
+<!--<img id="conquestMap" src="/greeting/img/42"/>-->
+<canvas id="myCanvas" width="1000" height="800"></canvas>
+<script>
+    function writeMessage(canvas, message) {
+        var context = canvas.getContext('2d');
+        context.clearRect(0, 0, 1000, 100);
+        context.font = '18pt Calibri';
+        context.fillStyle = 'black';
+        context.fillText(message, 10, 25);
+    }
+    function getMousePos(canvas, evt) {
+        var rect = canvas.getBoundingClientRect();
+        return {
+            x: evt.clientX - rect.left,
+            y: evt.clientY - rect.top
+        };
+    }
+   // var img = document.getElementById('conquestMap');
+    var canvas = document.getElementById('myCanvas');
+    var context = canvas.getContext('2d');
+
+    var imageObj = new Image();
+
+    imageObj.onload = function() {
+        context.drawImage(imageObj, 0, 100);
+    };
+    imageObj.src = '/greeting/img/42';
+
+    canvas.addEventListener('click', function(evt) {
+        var mousePos = getMousePos(canvas, evt);
+        var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y;
+        var oReq = new XMLHttpRequest();
+        oReq.open("GET", "/greeting/bla/"+mousePos.x, true);
+        oReq.setRequestHeader('x-requested-with', 'XMLHttpRequest');
+        // oReq.onload = function () {
+        //     // Запрос завершен. Здесь можно обрабатывать результат.
+        // };
+        oReq.send();
+
+        // jQuery().ajax({
+        //     url : '/greeting/bla/'+mousePos.x,
+        //     method : 'GET'
+        // });
+
+
+        writeMessage(canvas, message);
+    }, false);
+
+
+</script>
+
 </body>
 </html>
