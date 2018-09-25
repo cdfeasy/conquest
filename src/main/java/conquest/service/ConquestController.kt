@@ -1,5 +1,6 @@
 package conquest.service
 
+import conquest.entry.LineType
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.util.StreamUtils
@@ -27,6 +28,8 @@ class ConquestController {
     @GetMapping("/greeting")
     fun greeting(@RequestParam(name = "name", required = false, defaultValue = "World") name: String, model: Model): String {
         model.addAttribute("name", name)
+        var typeLst= arrayListOf(LineType("simple"),LineType("rad"));
+        model.addAttribute("lineTypes", typeLst)
         return "greeting"
     }
     @GetMapping(value = "/greeting/img/{imageId}")
@@ -62,5 +65,4 @@ class ConquestController {
         System.out.println(coord)
 //        return "blabla"
     }
-
 }

@@ -8,6 +8,15 @@
 <p th:text="'Hello, ' + ${name} + '!'" />
 <!--<img id="conquestMap" src="/greeting/img/42"/>-->
 <canvas id="myCanvas" width="1000" height="800"></canvas>
+<div>
+    <select id="lineType" name="lineType">
+        <option th:each="line : ${lineTypes}"
+                th:value="${line.lineName}"
+                th:utext="${line.lineName}"/>
+    </select>
+</div>
+
+
 <script>
     function writeMessage(canvas, message) {
         var context = canvas.getContext('2d');
@@ -25,6 +34,7 @@
     }
    // var img = document.getElementById('conquestMap');
     var canvas = document.getElementById('myCanvas');
+    var line = document.getElementById('lineType');
     var context = canvas.getContext('2d');
 
     var imageObj = new Image();
@@ -36,7 +46,7 @@
 
     canvas.addEventListener('click', function(evt) {
         var mousePos = getMousePos(canvas, evt);
-        var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y;
+        var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y+ ' line '+line.value;
         var oReq = new XMLHttpRequest();
         oReq.open("GET", "/greeting/bla/"+mousePos.x, true);
         oReq.setRequestHeader('x-requested-with', 'XMLHttpRequest');
