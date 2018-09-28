@@ -7,10 +7,6 @@ import conquest.entry.LineType
 import conquest.entry.Region
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.ResponseBody
 import java.awt.Color
 import java.awt.Font
 import java.awt.Graphics2D
@@ -18,6 +14,7 @@ import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
 import com.google.gson.Gson
+import org.springframework.web.bind.annotation.*
 
 
 @Controller
@@ -67,9 +64,9 @@ class ConquestController {
         return out.toByteArray()
     }
 
-    @GetMapping(value = "/greeting/bla/{coord}", headers = arrayOf("x-requested-with=XMLHttpRequest"))
-    fun bla(@PathVariable coord: String):String {
-        System.out.println(coord)
+    @PostMapping(value = "/greeting/bla")
+    fun bla(@RequestBody body:String):String {
+        System.out.println(body)
         return "greeting"
     }
 }

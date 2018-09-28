@@ -15,10 +15,59 @@
                 th:utext="${line.lineName}"/>
     </select>
 </div>
+<!--<button type="submit" name="/greeting/bla/1" value="~{/greeting/bla/1}">Remove row</button>-->
+<a th:href="@{/greeting/bla/1}">view</a>
+<button id="myButton">bla</button>
 
 
 <script th:inline="javascript">
     /*<![CDATA[*/
+
+    function area (region) {
+        var area = 0,
+            i,
+            j,
+            point1,
+            point2;
+
+        for (i = 0, j = region.points.length - 1; i < region.points.length; j = i, i += 1) {
+            point1 = region.points[i];
+            point2 = region.points[j];
+            area += point1.x * point2.y;
+            area -= point1.y * point2.x;
+        }
+        area /= 2;
+
+        return area;
+    };
+    function getCenter(region)
+    {
+        var x = 0,
+            y = 0,
+            i,
+            j,
+            f,
+            point1,
+            point2;
+
+        for (i = 0, j = region.points.length- 1; i < region.points.length; j = i, i += 1) {
+            point1 = region.points[i];
+            point2 = region.points[j];
+            f = point1.x * point2.y - point2.x * point1.y;
+            x += (point1.x + point2.x) * f;
+            y += (point1.y + point2.y) * f;
+        }
+
+        f = area(region) * 6;
+        return [x / f, y / f];
+    }
+    function send() {
+        oReq.open("GET", "/greeting/bla/"+points, true);
+        oReq.setRequestHeader('x-requested-with', 'XMLHttpRequest');
+        oReq.send();
+    }
+
+
     function writeMessage(canvas, message, imageObj, points) {
         var map =/*[[${map}]]*/ 'bla';
         var context = canvas.getContext('2d');
@@ -35,6 +84,8 @@
             }
             context.closePath();
             context.stroke();
+            var center=getCenter(map.regions[i]);
+            context.fillText(map.regions[i].name, center[0]-15, center[1]-15);
         }
 
         context.moveTo(points[0].x, points[0].y);
@@ -55,6 +106,8 @@
     var line = document.getElementById('lineType');
     var context = canvas.getContext('2d');
 
+    var button = document.getElementById('myButton');
+
     var imageObj = new Image();
 
     imageObj.onload = function() {
@@ -62,6 +115,13 @@
     };
     imageObj.src = '/greeting/img/42';
     var points = [];
+
+    button.addEventListener('click', function(evt) {
+        var oReq = new XMLHttpRequest();
+        oReq.open("POST", "/greeting/bla", true);
+       // oReq.setRequestHeader('x-requested-with', 'XMLHttpRequest');
+        oReq.send(JSON.stringify(points));
+    }, false);
 
     canvas.addEventListener('click', function(evt) {
         var mousePos = getMousePos(canvas, evt);
