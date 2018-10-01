@@ -14,24 +14,22 @@ import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
 import com.google.gson.Gson
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
 
 @Controller
 class ConquestController {
+    @Autowired
+    lateinit var repo:MapRepo
 
-    @GetMapping("/greeting")
-    fun greeting(@RequestParam(name = "name", required = false, defaultValue = "World") name: String, model: Model): String {
-        model.addAttribute("name", name)
+
+    @GetMapping("/greeting/{id}")
+    fun greeting(@PathVariable(name = "id", required = true) id: String, model: Model): String {
+        model.addAttribute("id", id)
         var typeLst = arrayListOf(LineType("simple"), LineType("rad"));
         model.addAttribute("lineTypes", typeLst)
-
-        val reg1 = Region("reg1", listOf(ImagePoint(10, 10), ImagePoint(200, 200), ImagePoint(50, 250)))
-        val reg2 = Region("reg2", listOf(ImagePoint(10, 300), ImagePoint(200, 400), ImagePoint(50, 600)))
-        val img = ConquestMap(listOf(reg1, reg2))
-        val mapper=ObjectMapper();
-     //   model.addAttribute("map", mapper.writeValueAsString(img))
-        model.addAttribute("map", img)
+        model.addAttribute("map", repo.getById(id))
         return "greeting"
     }
 
@@ -64,8 +62,8 @@ class ConquestController {
         return out.toByteArray()
     }
 
-    @PostMapping(value = "/greeting/bla")
-    fun bla(@RequestBody body:String):String {
+    @PostMapping(value = "/greeting/add/{id}")
+    fun bla(@RequestBody body:String,@PathVariable(name = "id", required = true) id: String):String {
         System.out.println(body)
         return "greeting"
     }

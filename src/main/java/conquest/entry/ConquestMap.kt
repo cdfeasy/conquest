@@ -1,6 +1,5 @@
 package conquest.entry
-data class ConquestMap(var regions:List<Region>) {
-
+data class ConquestMap(var name:String?,var id:String?, var description: String?,var regions:List<Region>) {
 
 }
 
