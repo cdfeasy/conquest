@@ -3,22 +3,46 @@
 <head>
     <title>Getting Started: Serving Web Content</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link href="../css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}" rel="stylesheet"/>
 </head>
 <body>
 <p th:text="'Hello, ' + ${name} + '!'"/>
-<!--<img id="conquestMap" src="/greeting/img/42"/>-->
-<canvas id="myCanvas" width="1000" height="800"></canvas>
-<div>
-    <select id="lineType" name="lineType">
-        <option th:each="line : ${lineTypes}"
-                th:value="${line.lineName}"
-                th:utext="${line.lineName}"/>
-    </select>
-</div>
-<!--<button type="submit" name="/greeting/bla/1" value="~{/greeting/bla/1}">Remove row</button>-->
-<a th:href="@{/greeting/bla/1}">view</a>
-<button id="myButton">bla</button>
-
+<table class="table table-bordered table-striped" style="width:100%">
+    <tr>
+        <td>
+            <canvas id="myCanvas" width="1000" height="800"></canvas>
+        </td>
+        <td valign="top">
+            <!--<button type="submit" name="/greeting/bla/1" value="~{/greeting/bla/1}">Remove row</button>-->
+            <div>
+                <div>
+                    <select id="lineType" name="lineType">
+                        <option th:each="line : ${lineTypes}"
+                                th:value="${line.lineName}"
+                                th:utext="${line.lineName}"/>
+                    </select>
+                </div>
+                <a th:href="@{/map/bla/1}">view</a>
+                <button id="myButton">bla</button>
+                <table class="table table-bordered table-striped">
+                    <thead>
+                    <tr>
+                        <td>name</td>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${map.regions.isEmpty()}">
+                        <td colspan="4">No regions</td>
+                    </tr>
+                    <tr th:each="region : ${map.regions}">
+                        <td th:text="${region.name}">1</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </td>
+    </tr>
+</table>
 
 <script th:inline="javascript">
     /*<![CDATA[*/
@@ -40,6 +64,17 @@
 
         return area;
     };
+
+    function point(context, x, y) {
+        var radius = 5;
+        context.beginPath();
+        context.arc(x, y, radius, 0, 2 * Math.PI, false);
+        context.fillStyle = 'green';
+        context.fill();
+        context.lineWidth = 1;
+        context.strokeStyle = '#003300';
+        context.stroke();
+    }
 
     function getCenter(region) {
         var x = 0,
@@ -63,7 +98,7 @@
     }
 
     function send() {
-        oReq.open("GET", "/greeting/bla/" + points, true);
+        oReq.open("GET", "/map/bla/" + points, true);
         oReq.setRequestHeader('x-requested-with', 'XMLHttpRequest');
         oReq.send();
     }
@@ -78,22 +113,29 @@
         context.fillStyle = 'black';
         context.fillText(message, 10, 25);
         for (var i = 0; i < map.regions.length; i++) {
-            context.beginPath();
-            context.moveTo(map.regions[i].points[0].x, map.regions[i].points[0].y);
-            for (var j = 1; j < map.regions[i].points.length; j++) {
-                context.lineTo(map.regions[i].points[j].x, map.regions[i].points[j].y);
+            if (map.regions[i].points.length > 0) {
+                context.beginPath();
+                context.moveTo(map.regions[i].points[0].x, map.regions[i].points[0].y);
+                for (var j = 1; j < map.regions[i].points.length; j++) {
+                    context.lineTo(map.regions[i].points[j].x, map.regions[i].points[j].y);
+                }
+                context.closePath();
+                context.stroke();
+                var center = getCenter(map.regions[i]);
+                context.fillText(map.regions[i].name, center[0] - 15, center[1] - 15);
             }
-            context.closePath();
-            context.stroke();
-            var center = getCenter(map.regions[i]);
-            context.fillText(map.regions[i].name, center[0] - 15, center[1] - 15);
         }
         if (points.length > 0) {
             context.moveTo(points[0].x, points[0].y);
             for (var i = 1; i < points.length; i++) {
                 context.lineTo(points[i].x, points[i].y);
+
             }
             context.stroke();
+            point(context, points[0].x, points[0].y)
+            for (var i = 1; i < points.length; i++) {
+                point(context, points[i].x, points[i].y)
+            }
         }
     }
 
@@ -117,28 +159,28 @@
     imageObj.onload = function () {
         context.drawImage(imageObj, 0, 100);
     };
-    imageObj.src = '/greeting/img/42';
+    imageObj.src = '/map/img/42';
     var points = [];
 
-    window.onload = function() {
+    window.onload = function () {
         refresh(canvas, '', imageObj, points)
     }
     button.addEventListener('click', function (evt) {
         var oReq = new XMLHttpRequest();
         var id = /*[[${id}]]*/ '0'
-        oReq.open("POST", "/greeting/add/" + id, true);
+        oReq.open("POST", "/map/add/" + id, true);
         // oReq.setRequestHeader('x-requested-with', 'XMLHttpRequest');
         var points2 = points
         points = []
         oReq.send(JSON.stringify(points2));
         location.reload();
-    }, false);
+    }, true);
 
     canvas.addEventListener('click', function (evt) {
         var mousePos = getMousePos(canvas, evt);
         var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y + ' line ' + line.value;
         var oReq = new XMLHttpRequest();
-        oReq.open("GET", "/greeting/bla/" + mousePos.x, true);
+        oReq.open("GET", "/map/bla/" + mousePos.x, true);
         oReq.setRequestHeader('x-requested-with', 'XMLHttpRequest');
         points.push({x: mousePos.x, y: mousePos.y})
         refresh(canvas, message, imageObj, points);

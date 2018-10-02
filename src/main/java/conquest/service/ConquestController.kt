@@ -1,6 +1,9 @@
 package conquest.service
 
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import conquest.entry.ConquestMap
 import conquest.entry.ImagePoint
 import conquest.entry.LineType
@@ -14,26 +17,31 @@ import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
 import com.google.gson.Gson
+import javafx.beans.binding.ObjectExpression
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
+import java.util.*
 
 
 @Controller
 class ConquestController {
     @Autowired
     lateinit var repo:MapRepo
+    val om:ObjectMapper=jacksonObjectMapper();
 
 
-    @GetMapping("/greeting/{id}")
+    @GetMapping("/map/{id}")
     fun greeting(@PathVariable(name = "id", required = true) id: String, model: Model): String {
         model.addAttribute("id", id)
         var typeLst = arrayListOf(LineType("simple"), LineType("rad"));
         model.addAttribute("lineTypes", typeLst)
-        model.addAttribute("map", repo.getById(id))
-        return "greeting"
+        val map = repo.getById(id)
+        model.addAttribute("map", map)
+        System.out.println(map?.regions?.size)
+        return "map"
     }
 
-    @GetMapping(value = "/greeting/img/{imageId}")
+    @GetMapping(value = "/map/img/{imageId}")
     @ResponseBody
     fun helloWorld(@PathVariable imageId: String): ByteArray {
         System.out.println("show " + imageId)
@@ -62,9 +70,18 @@ class ConquestController {
         return out.toByteArray()
     }
 
-    @PostMapping(value = "/greeting/add/{id}")
-    fun bla(@RequestBody body:String,@PathVariable(name = "id", required = true) id: String):String {
+    @PostMapping(value = "/map/add/{id}")
+    fun bla(@RequestBody body:String,@PathVariable(name = "id", required = true) id: String, model: Model):String {
+        val map = repo.getById(id)
+        var points:ArrayList<ImagePoint> =om.readValue(body)
+        var region=Region("bla",points)
+        map?.regions?.add(region)
         System.out.println(body)
-        return "greeting"
+
+        model.addAttribute("id", id)
+        var typeLst = arrayListOf(LineType("simple"), LineType("rad"));
+        model.addAttribute("lineTypes", typeLst)
+        model.addAttribute("map", map)
+        return "map";
     }
 }
