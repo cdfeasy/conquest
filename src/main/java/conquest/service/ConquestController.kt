@@ -17,9 +17,15 @@ import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
 import com.google.gson.Gson
+import com.nimbusds.jose.util.StandardCharset
 import javafx.beans.binding.ObjectExpression
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.web.bind.annotation.*
+import java.net.URLDecoder
+import java.security.Principal
 import java.util.*
 
 
@@ -31,10 +37,13 @@ class ConquestController {
 
 
     @GetMapping("/map/{id}")
-    fun greeting(@PathVariable(name = "id", required = true) id: String, model: Model): String {
+    fun greeting(@PathVariable(name = "id", required = true) id: String, model: Model, principal: Principal): String {
+        //(principal as OAuth2AuthenticationToken). .add(SimpleGrantedAuthority("MAP_ADMIN"))
         model.addAttribute("id", id)
         var typeLst = arrayListOf(LineType("simple"), LineType("rad"));
         model.addAttribute("lineTypes", typeLst)
+        model.addAttribute("blabla1", "[]")
+        model.addAttribute("data", "[]")
         val map = repo.getById(id)
         model.addAttribute("map", map)
         System.out.println(map?.regions?.size)
@@ -72,16 +81,19 @@ class ConquestController {
 
     @PostMapping(value = "/map/add/{id}")
     fun bla(@RequestBody body:String,@PathVariable(name = "id", required = true) id: String, model: Model):String {
+        var parts=body.split("&");
+        val pointsJson:String=URLDecoder.decode(parts[0].substring(5),StandardCharset.UTF_8.name())
+        System.out.println(pointsJson)
         val map = repo.getById(id)
-        var points:ArrayList<ImagePoint> =om.readValue(body)
-        var region=Region("bla",points)
+        var points:ArrayList<ImagePoint> =om.readValue(pointsJson)
+        var region=Region(parts[1].substring(9),points)
         map?.regions?.add(region)
-        System.out.println(body)
-
-        model.addAttribute("id", id)
-        var typeLst = arrayListOf(LineType("simple"), LineType("rad"));
-        model.addAttribute("lineTypes", typeLst)
-        model.addAttribute("map", map)
-        return "map";
+//
+//
+//        model.addAttribute("id", id)
+//        var typeLst = arrayListOf(LineType("simple"), LineType("rad"));
+//        model.addAttribute("lineTypes", typeLst)
+//        model.addAttribute("map", map)
+        return "redirect:/map/"+id;
     }
 }

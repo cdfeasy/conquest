@@ -1,12 +1,19 @@
 <!DOCTYPE HTML>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
     <title>Getting Started: Serving Web Content</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <link href="../css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}" rel="stylesheet"/>
 </head>
 <body>
-<p th:text="'Hello, ' + ${name} + '!'"/>
+<!--<p th:text="'Hello, ' + ${#authentication.getAccessToken()} + '!'"/>-->
+<p th:text="'Hello, ' + ${#authentication.toString()} + '!'"/>
+<p th:text="'Hello, ' + ${id} + '!'"/>
+<div sec:authorize="isAuthenticated()">
+    This content is only shown to authenticated users.
+</div>
+Logged user: <span sec:authentication="name">Bob</span>
+Roles: <span sec:authentication="principal.authorities">[ROLE_USER, ROLE_ADMIN]</span>
 <table class="table table-bordered table-striped" style="width:100%">
     <tr>
         <td>
@@ -23,7 +30,26 @@
                     </select>
                 </div>
                 <a th:href="@{/map/bla/1}">view</a>
-                <button id="myButton">bla</button>
+                <button id="myButton" onClick="click()">bla</button>
+
+                <div>
+                    <form id="form1" action="#" th:action="@{/map/add/{id}(id=${id})}" th:object="${data}"
+                          method="post">
+                        <input
+                                type="hidden"
+                                name="data"
+                                id="dataId"
+                                value="[]"/>
+                        <input
+                                type="text"
+                                name="dataName"
+                                id="dataNameId"
+                                value="New Region"/>
+                        <input type="submit" value="Сохранить"/>
+                    </form>
+                </div>
+
+
                 <table class="table table-bordered table-striped">
                     <thead>
                     <tr>
@@ -137,6 +163,9 @@
                 point(context, points[i].x, points[i].y)
             }
         }
+        var dataEl = document.getElementById('dataId');
+        dataEl.value = JSON.stringify(points)
+
     }
 
     function getMousePos(canvas, evt) {
@@ -165,16 +194,30 @@
     window.onload = function () {
         refresh(canvas, '', imageObj, points)
     }
-    button.addEventListener('click', function (evt) {
+
+    function click() {
         var oReq = new XMLHttpRequest();
         var id = /*[[${id}]]*/ '0'
         oReq.open("POST", "/map/add/" + id, true);
+        //oReq.setRequestHeader('Authorization', 'Bearer ' + oauthToken);
         // oReq.setRequestHeader('x-requested-with', 'XMLHttpRequest');
         var points2 = points
         points = []
         oReq.send(JSON.stringify(points2));
         location.reload();
-    }, true);
+    }
+
+    // button.addEventListener('click', function (evt) {
+    //     var oReq = new XMLHttpRequest();
+    //     var id = /*[[${id}]]*/ '0'
+    //     oReq.open("POST", "/map/add/" + id, true);
+    //     //oReq.setRequestHeader('Authorization', 'Bearer ' + oauthToken);
+    //     // oReq.setRequestHeader('x-requested-with', 'XMLHttpRequest');
+    //     var points2 = points
+    //     points = []
+    //     oReq.send(JSON.stringify(points2));
+    //     location.reload();
+    // }, true);
 
     canvas.addEventListener('click', function (evt) {
         var mousePos = getMousePos(canvas, evt);

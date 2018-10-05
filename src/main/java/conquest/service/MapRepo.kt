@@ -6,7 +6,7 @@ import conquest.entry.Region
 import org.springframework.stereotype.Component
 import java.util.*
 
-@Component
+@Component()
 class MapRepo {
     var maps: HashMap<String, ConquestMap> = HashMap()
 
