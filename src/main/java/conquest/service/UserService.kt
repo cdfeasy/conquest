@@ -54,12 +54,3 @@ open class ClientRepo : OAuth2AuthorizedClientService {
     }
 
 }
-
-//@Service
-open class UserDetailsServiceImpl : UserDetailsService {
-    override fun loadUserByUsername(username: String?): UserDetails {
-        var user:User=User(username,"bla", arrayListOf(SimpleGrantedAuthority("map_admin")));
-        return user;
-    }
-
-}

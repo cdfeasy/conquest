@@ -1,24 +1,16 @@
 package conquest
 
 import conquest.service.ClientRepo
-import conquest.service.UserDetailsServiceImpl
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Description
 import org.springframework.context.annotation.PropertySource
 import org.springframework.core.env.Environment
-import org.springframework.security.authentication.AuthenticationDetailsSource
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
-import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer
 import org.springframework.security.config.oauth2.client.CommonOAuth2Provider
-import org.springframework.security.core.userdetails.UserDetailsService
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
-import org.springframework.security.oauth2.client.InMemoryOAuth2AuthorizedClientService
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService
 import org.springframework.security.oauth2.client.endpoint.NimbusAuthorizationCodeTokenResponseClient
 import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient
@@ -28,6 +20,8 @@ import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService
 import org.springframework.security.oauth2.client.registration.ClientRegistration
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository
+import org.springframework.security.oauth2.core.AuthorizationGrantType
+import org.springframework.security.oauth2.core.ClientAuthenticationMethod
 import org.thymeleaf.spring5.SpringTemplateEngine
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
 import java.util.stream.Collectors
@@ -42,7 +36,7 @@ import javax.annotation.Resource
 @PropertySource("classpath:application.properties")
 open class SecurityConfig : WebSecurityConfigurerAdapter() {
     private val CLIENT_PROPERTY_KEY = "spring.security.oauth2.client.registration."
-    private val clients = arrayListOf("google", "facebook")
+    private val clients = arrayListOf("google", "facebook","vk")
     @Resource
     lateinit var env: Environment
 //    @Autowired
@@ -68,7 +62,7 @@ open class SecurityConfig : WebSecurityConfigurerAdapter() {
 
     @Throws(Exception::class)
     override fun configure(auth: AuthenticationManagerBuilder) {
-        var provider =OidcAuthorizationCodeAuthenticationProvider(accessTokenResponseClient(), OidcUserService())
+        var provider = OidcAuthorizationCodeAuthenticationProvider(accessTokenResponseClient(), OidcUserService())
         provider.setAuthoritiesMapper(MyAuthoritiesMapper())
         auth.authenticationProvider(provider)
     }
@@ -142,6 +136,22 @@ open class SecurityConfig : WebSecurityConfigurerAdapter() {
             return CommonOAuth2Provider.FACEBOOK.getBuilder(client)
                     .clientId(clientId).clientSecret(clientSecret).build();
         }
-        return null;
+        if (client.equals("vk")) {
+            val builder = ClientRegistration.withRegistrationId(client)
+            builder.clientAuthenticationMethod(ClientAuthenticationMethod.POST)
+            builder.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+            builder.redirectUriTemplate("{baseUrl}/login/oauth2/code/{registrationId}")
+            builder.scope("email")
+            builder.authorizationUri("https://oauth.vk.com/authorize")
+            builder.tokenUri("https://oauth.vk.com/access_token")
+            builder.userInfoUri("https://api.vk.com/method/users.get")
+            builder.userNameAttributeName("code")
+            builder.clientName("Vk")
+
+
+            return builder
+                    .clientId(clientId).clientSecret(clientSecret).build();
+        }
+        return null
     }
 }

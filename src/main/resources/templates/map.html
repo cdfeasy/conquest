@@ -9,6 +9,15 @@
 <!--<p th:text="'Hello, ' + ${#authentication.getAccessToken()} + '!'"/>-->
 <p th:text="'Hello, ' + ${#authentication.toString()} + '!'"/>
 <p th:text="'Hello, ' + ${id} + '!'"/>
+<div th:if="${#authentication.principal.id}=='12'">
+    <div>Welcome, Guest1</div>
+</div>
+<div th:if="${#authentication.principal.id}=='1235'">
+    <div>Welcome, Guest2</div>
+</div>
+<!--<div th:if="${customer.anonymous}">-->
+    <!--<div>Welcome, Guest</div>-->
+<!--</div>-->
 <div sec:authorize="isAuthenticated()">
     This content is only shown to authenticated users.
 </div>
