@@ -25,7 +25,7 @@ class Tests{
         graphics.drawPolygon(intArrayOf(110,200,290), intArrayOf(55,140,75), 3);
         ImageIO.write(image, "jpg", File(
                 "C:/tmp/1.jpg"))
-        println("Image Created")
+       // println("Image Created")
     }
 
 

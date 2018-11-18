@@ -22,6 +22,7 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository
 import org.springframework.security.oauth2.core.AuthorizationGrantType
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher
 import org.thymeleaf.spring5.SpringTemplateEngine
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
 import java.util.stream.Collectors
@@ -36,7 +37,7 @@ import javax.annotation.Resource
 @PropertySource("classpath:application.properties")
 open class SecurityConfig : WebSecurityConfigurerAdapter() {
     private val CLIENT_PROPERTY_KEY = "spring.security.oauth2.client.registration."
-    private val clients = arrayListOf("google", "facebook","vk")
+    private val clients = arrayListOf("google", "facebook", "vk")
     @Resource
     lateinit var env: Environment
 //    @Autowired
@@ -48,15 +49,35 @@ open class SecurityConfig : WebSecurityConfigurerAdapter() {
 
     @Throws(Exception::class)
     protected override fun configure(http: HttpSecurity) {
+      //  http.authorizeRequests().antMatchers("/profile/*").authenticated()
         http.authorizeRequests().anyRequest().authenticated()
                 .and()
                 .oauth2Login()
                 .clientRegistrationRepository(clientRegistrationRepository())
                 .authorizedClientService(authorizedClientService())
                 .userInfoEndpoint()
-                .userAuthoritiesMapper(MyAuthoritiesMapper())
+                //   .userAuthoritiesMapper(MyAuthoritiesMapper())
                 .oidcUserService(MyOAuth2UserService())
         http.csrf().disable();
+
+//        http
+//                .authorizeRequests()
+//                .antMatchers("/resources/**", "/login", "/map/*").permitAll()
+//                .antMatchers("/admin/**").hasRole("ADMIN")
+//                .and()
+//
+//                .formLogin()
+//                .loginPage("/login")
+//                .defaultSuccessUrl("/admin/home")
+//                .failureUrl("/loginfailed")
+//                .permitAll()
+//                .and()
+//
+//                .logout()
+//                .logoutRequestMatcher(AntPathRequestMatcher("/logout"))
+//                .deleteCookies("JSESSIONID")
+//                .invalidateHttpSession(true)
+  //              .and();
     }
 
 
