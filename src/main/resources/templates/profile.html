@@ -1,0 +1,32 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Getting Started: Serving Web Content</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link href="../css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}" rel="stylesheet"/>
+</head>
+<body>
+<!--<p th:text="'Hello, ' + ${#authentication.getAccessToken()} + '!'"/>-->
+<p th:text="'Hello, ' + ${#authentication.toString()} + '!'"/>
+<p th:text="'Hello, ' + ${id} + '!'"/>
+<div th:if="${#authentication.principal.id}=='12'">
+    <div>Welcome, Guest1</div>
+</div>
+<div th:if="${#authentication.principal.id}=='1235'">
+    <div>Welcome, Guest2</div>
+</div>
+<!--<div th:if="${customer.anonymous}">-->
+<!--<div>Welcome, Guest</div>-->
+<!--</div>-->
+<div sec:authorize="isAuthenticated()">
+    This content is only shown to authenticated users.
+</div>
+Logged user: <span sec:authentication="name">Bob</span>
+Roles: <span sec:authentication="principal.authorities">[ROLE_USER, ROLE_ADMIN]</span>
+
+<script th:inline="javascript">
+   
+</script>
+
+</body>
+</html>

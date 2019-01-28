@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.*
 import java.net.URLDecoder
 import java.security.Principal
 import java.util.*
+import java.util.function.Predicate
 
 
 @Controller
@@ -80,13 +81,13 @@ class ConquestController {
     }
 
     @PostMapping(value = "/map/add/{id}")
-    fun bla(@RequestBody body:String,@PathVariable(name = "id", required = true) id: String, model: Model):String {
+    fun add(@RequestBody body:String,@PathVariable(name = "id", required = true) id: String, model: Model):String {
         var parts=body.split("&");
         val pointsJson:String=URLDecoder.decode(parts[0].substring(5),StandardCharset.UTF_8.name())
         System.out.println(pointsJson)
         val map = repo.getById(id)
         var points:ArrayList<ImagePoint> =om.readValue(pointsJson)
-        var region=Region(parts[1].substring(9),points)
+        var region=Region(parts[1].substring(9),parts[1].substring(9),points)
         map?.regions?.add(region)
 //
 //
@@ -94,6 +95,30 @@ class ConquestController {
 //        var typeLst = arrayListOf(LineType("simple"), LineType("rad"));
 //        model.addAttribute("lineTypes", typeLst)
 //        model.addAttribute("map", map)
+        return "redirect:/map/"+id;
+    }
+
+    @PostMapping(value = "/map/edit/{id}")
+    fun edit(@RequestBody body:String,@PathVariable(name = "id", required = true) id: String, model: Model):String {
+        var parts=body.split("&");
+        val pointsJson:String=URLDecoder.decode(parts[0].substring(5),StandardCharset.UTF_8.name())
+        System.out.println(pointsJson)
+        val map = repo.getById(id)
+        var points:ArrayList<ImagePoint> =om.readValue(pointsJson)
+        var name=parts[1].substring(9);
+        map?.regions?.filter { s->s.name.equals(name) }?.first()?.points=points;
+        return "redirect:/map/"+id;
+    }
+
+    @PostMapping(value = "/map/remove/{id}")
+    fun delete(@RequestBody body:String,@PathVariable(name = "id", required = true) id: String, model: Model):String {
+        var parts=body.split("&");
+        val pointsJson:String=URLDecoder.decode(parts[0].substring(5),StandardCharset.UTF_8.name())
+        System.out.println(pointsJson)
+        val map = repo.getById(id)
+        var points:ArrayList<ImagePoint> =om.readValue(pointsJson)
+        var name=parts[1].substring(9);
+        map?.regions?.removeIf{s->s.name.equals(name)};
         return "redirect:/map/"+id;
     }
 }
