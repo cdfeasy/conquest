@@ -7,8 +7,8 @@
 </head>
 <body>
 <!--<p th:text="'Hello, ' + ${#authentication.getAccessToken()} + '!'"/>-->
-<p th:text="'Hello, ' + ${#authentication.toString()} + '!'"/>
-<p th:text="'Hello, ' + ${id} + '!'"/>
+<p th:text="'Hello1, ' + ${#authentication.toString()} + '!'"/>
+<p th:text="'Hello2, ' + ${id} + '!'"/>
 <div th:if="${#authentication.principal.id}=='12'">
     <div>Welcome, Guest1</div>
 </div>
@@ -16,7 +16,7 @@
     <div>Welcome, Guest2</div>
 </div>
 <!--<div th:if="${customer.anonymous}">-->
-    <!--<div>Welcome, Guest</div>-->
+<!--<div>Welcome, Guest</div>-->
 <!--</div>-->
 <div sec:authorize="isAuthenticated()">
     This content is only shown to authenticated users.
@@ -48,7 +48,7 @@ Roles: <span sec:authentication="principal.authorities">[ROLE_USER, ROLE_ADMIN]<
                                 type="hidden"
                                 name="data"
                                 id="dataId"
-                                value="[]"/>
+                                value="{}"/>
                         <input
                                 type="text"
                                 name="dataName"
@@ -73,9 +73,9 @@ Roles: <span sec:authentication="principal.authorities">[ROLE_USER, ROLE_ADMIN]<
                         <td th:text="${region.name}">1</td>
                     </tr>
                     <!--<div>-->
-                        <!--<select th:each="region : ${map.regions}">-->
-                            <!--<option th:value="${region.id}" th:text="${region.name}"></option>-->
-                        <!--</select>-->
+                    <!--<select th:each="region : ${map.regions}">-->
+                    <!--<option th:value="${region.id}" th:text="${region.name}"></option>-->
+                    <!--</select>-->
                     <!--</div>-->
 
                     </tbody>
@@ -86,14 +86,12 @@ Roles: <span sec:authentication="principal.authorities">[ROLE_USER, ROLE_ADMIN]<
                         </option>
                     </select>
                 </div>
-                <div>
-                    <ul>
-                        <li id="regSelect1" th:each="ty : ${map.regions}">
-                            <input type="radio" th:field="*{regions}" th:value="${region}" />
-                            <label th:for="${#ids.prev('regions')}" th:text="${region}"></label>
-                        </li>
-                    </ul>
-                </div>
+                <ul>
+                    <li id="regSelect1" th:each="ty : ${map.regions}">
+                        <input type="radio" th:field="*{map.regions}" th:value="${ty.id}"/>
+                        <label th:id="${#ids.prev('regions')}+Name" th:text="${ty.name}"></label>
+                    </li>
+                </ul>
             </div>
         </td>
     </tr>
@@ -120,7 +118,12 @@ Roles: <span sec:authentication="principal.authorities">[ROLE_USER, ROLE_ADMIN]<
         return area;
     };
 
-    function point(context, x, y) {
+    function SelectedRegion(id, name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    function drawPoint(context, x, y) {
         var radius = 5;
         context.beginPath();
         context.arc(x, y, radius, 0, 2 * Math.PI, false);
@@ -159,7 +162,7 @@ Roles: <span sec:authentication="principal.authorities">[ROLE_USER, ROLE_ADMIN]<
     }
 
 
-    function refresh(canvas, message, imageObj, points) {
+    function refresh(canvas, message, imageObj, point) {
         var map = /*[[${map}]]*/ 'bla';
         var context = canvas.getContext('2d');
         context.clearRect(0, 0, 1000, 1000);
@@ -167,33 +170,13 @@ Roles: <span sec:authentication="principal.authorities">[ROLE_USER, ROLE_ADMIN]<
         context.font = '18pt Calibri';
         context.fillStyle = 'black';
         context.fillText(message, 10, 25);
+        drawPoint(context, point.x, point.y)
         for (var i = 0; i < map.regions.length; i++) {
-            if (map.regions[i].points.length > 0) {
-                context.beginPath();
-                context.moveTo(map.regions[i].points[0].x, map.regions[i].points[0].y);
-                for (var j = 1; j < map.regions[i].points.length; j++) {
-                    context.lineTo(map.regions[i].points[j].x, map.regions[i].points[j].y);
-                }
-                context.closePath();
-                context.stroke();
-                var center = getCenter(map.regions[i]);
-                context.fillText(map.regions[i].name, center[0] - 15, center[1] - 15);
-            }
-        }
-        if (points.length > 0) {
-            context.moveTo(points[0].x, points[0].y);
-            for (var i = 1; i < points.length; i++) {
-                context.lineTo(points[i].x, points[i].y);
-
-            }
-            context.stroke();
-            point(context, points[0].x, points[0].y)
-            for (var i = 1; i < points.length; i++) {
-                point(context, points[i].x, points[i].y)
-            }
+            drawPoint(context, map.regions[i].point.x, map.regions[i].point.y)
+            context.fillText(map.regions[i].name, map.regions[i].point.x - 15, map.regions[i].point.y - 15);
         }
         var dataEl = document.getElementById('dataId');
-        dataEl.value = JSON.stringify(points)
+        dataEl.value = JSON.stringify(point)
 
     }
 
@@ -209,7 +192,7 @@ Roles: <span sec:authentication="principal.authorities">[ROLE_USER, ROLE_ADMIN]<
     var canvas = document.getElementById('myCanvas');
     var line = document.getElementById('lineType');
     var context = canvas.getContext('2d');
-    var mode=0;
+    var mode = 0;
 
     var button = document.getElementById('myButton');
 
@@ -219,58 +202,44 @@ Roles: <span sec:authentication="principal.authorities">[ROLE_USER, ROLE_ADMIN]<
         context.drawImage(imageObj, 0, 100);
     };
     imageObj.src = '/map/img/42';
-    var points = [];
+    var points = {};
 
     window.onload = function () {
         refresh(canvas, '', imageObj, points)
     }
 
     function editStart() {
-        mode=1;
+        mode = 1;
         var map = /*[[${map}]]*/ 'bla';
         var regSelect = document.getElementById('regSelect');
-        var val=regSelect.options[regSelect.selectedIndex].value;
-        var points;
+        var val = regSelect.options[regSelect.selectedIndex].value;
+        var point;
         for (var i = 0; i < map.regions.length; i++) {
-            if (map.regions[i].name==val) {
-                points=map.regions[i].points;
+            if (map.regions[i].name == val) {
+                point = map.regions[i].point;
             }
         }
-        if (points.length > 0) {
-            point(context, points[0].x, points[0].y)
-            for (var i = 1; i < points.length; i++) {
-                point(context, points[i].x, points[i].y)
-            }
-        }
+
+        drawPoint(context, point.x, point.y)
         var dataEl = document.getElementById('dataId');
-        dataEl.value = JSON.stringify(points)
+        dataEl.value = JSON.stringify(point)
     }
 
-    function editEnd() {
-        mode=0;
-        var map = /*[[${map}]]*/ 'bla';
-        var regSelect = document.getElementById('regSelect');
-        var val=regSelect.options[regSelect.selectedIndex].value;
-        var points;
-        for (var i = 0; i < map.regions.length; i++) {
-            if (map.regions[i].name==val) {
-                points=map.regions[i].points;
+    function selectedRegion() {
+        var msg = '';
+        var selected;
+        for (var i = 1; i < 10; i++) {
+            var reg = document.getElementById('regions' + i);
+            if (reg == undefined)
+                break;
+            if (selected == undefined) {
+                selected = new SelectedRegion(reg.value, document.getElementById('regions' + i + 'Name').innerHTML)
+            }
+            if (reg.checked) {
+                selected = new SelectedRegion(reg.value, document.getElementById('regions' + i + 'Name').innerHTML)
             }
         }
-        if (points.length > 0) {
-            context.moveTo(points[0].x, points[0].y);
-            for (var i = 1; i < points.length; i++) {
-                context.lineTo(points[i].x, points[i].y);
-
-            }
-            context.stroke();
-            point(context, points[0].x, points[0].y)
-            for (var i = 1; i < points.length; i++) {
-                point(context, points[i].x, points[i].y)
-            }
-        }
-        var dataEl = document.getElementById('dataId');
-        dataEl.value = JSON.stringify(points)
+        return selected;
     }
 
     // button.addEventListener('click', function (evt) {
@@ -287,12 +256,14 @@ Roles: <span sec:authentication="principal.authorities">[ROLE_USER, ROLE_ADMIN]<
 
     canvas.addEventListener('click', function (evt) {
         var mousePos = getMousePos(canvas, evt);
-        var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y + ' line ' + line.value;
-       // var oReq = new XMLHttpRequest();
-     //   oReq.open("GET", "/map/bla/1" + mousePos.x, true);
-     //   oReq.setRequestHeader('x-requested-with', 'XMLHttpRequest');
-        points.push({x: mousePos.x, y: mousePos.y})
-        refresh(canvas, message, imageObj, points);
+        var regSelect1 = document.getElementById('regions1');
+        selectedRegion();
+        var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y + ' line ' + line.value + ' selected ' + regSelect1.checked;
+        // var oReq = new XMLHttpRequest();
+        //   oReq.open("GET", "/map/bla/1" + mousePos.x, true);
+        //   oReq.setRequestHeader('x-requested-with', 'XMLHttpRequest');
+      //  points.push({x: mousePos.x, y: mousePos.y})
+        refresh(canvas, message, imageObj, mousePos);
     }, false);
 
     /*]]>*/

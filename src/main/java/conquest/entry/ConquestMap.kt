@@ -10,6 +10,6 @@ data class ImagePoint(var x: Int, var y: Int) {
 
 }
 
-data class Region(var name: String,var id: String?, var points: ArrayList<ImagePoint>, var description: String = "") {
+data class Region(var name: String,var id: String?, var point: ImagePoint, var neighbours: List<Region>?, var description: String = "") {
 }
 

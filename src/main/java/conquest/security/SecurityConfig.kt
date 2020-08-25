@@ -1,20 +1,27 @@
-package conquest
+package conquest.security
 
+import conquest.security.CustomOAuth2UserService
+import conquest.security.CustomTokenResponseConverter
+import conquest.security.MyAuthoritiesMapper
+import conquest.security.MyOAuth2UserService
 import conquest.service.ClientRepo
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Description
 import org.springframework.context.annotation.PropertySource
 import org.springframework.core.env.Environment
+import org.springframework.http.converter.FormHttpMessageConverter
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.config.annotation.web.builders.WebSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.config.oauth2.client.CommonOAuth2Provider
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService
-import org.springframework.security.oauth2.client.endpoint.NimbusAuthorizationCodeTokenResponseClient
+import org.springframework.security.oauth2.client.endpoint.DefaultAuthorizationCodeTokenResponseClient
 import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest
+import org.springframework.security.oauth2.client.http.OAuth2ErrorResponseErrorHandler
 import org.springframework.security.oauth2.client.oidc.authentication.OidcAuthorizationCodeAuthenticationProvider
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService
 import org.springframework.security.oauth2.client.registration.ClientRegistration
@@ -22,9 +29,11 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository
 import org.springframework.security.oauth2.core.AuthorizationGrantType
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher
+import org.springframework.security.oauth2.core.http.converter.OAuth2AccessTokenResponseHttpMessageConverter
+import org.springframework.web.client.RestTemplate
 import org.thymeleaf.spring5.SpringTemplateEngine
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
+import java.util.*
 import java.util.stream.Collectors
 import javax.annotation.Resource
 
@@ -55,7 +64,7 @@ open class SecurityConfig : WebSecurityConfigurerAdapter() {
                 .oauth2Login()
                 .clientRegistrationRepository(clientRegistrationRepository())
                 .authorizedClientService(authorizedClientService())
-                .userInfoEndpoint()
+                .userInfoEndpoint().userService(CustomOAuth2UserService())
                 //   .userAuthoritiesMapper(MyAuthoritiesMapper())
                 .oidcUserService(MyOAuth2UserService())
         http.csrf().disable();
@@ -80,6 +89,10 @@ open class SecurityConfig : WebSecurityConfigurerAdapter() {
   //              .and();
     }
 
+    @Throws(java.lang.Exception::class)
+    override fun configure(web: WebSecurity) {
+    }
+
 
     @Throws(Exception::class)
     override fun configure(auth: AuthenticationManagerBuilder) {
@@ -90,8 +103,14 @@ open class SecurityConfig : WebSecurityConfigurerAdapter() {
 
     @Bean
     open fun accessTokenResponseClient(): OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> {
-
-        return NimbusAuthorizationCodeTokenResponseClient()
+        var client=DefaultAuthorizationCodeTokenResponseClient()
+        val converter= OAuth2AccessTokenResponseHttpMessageConverter()
+        converter.setTokenResponseConverter(CustomTokenResponseConverter())
+        val restTemplate = RestTemplate(Arrays.asList(
+                FormHttpMessageConverter(), converter))
+        restTemplate.errorHandler = OAuth2ErrorResponseErrorHandler()
+        client.setRestOperations(restTemplate)
+        return client
     }
 
     @Bean
@@ -163,13 +182,12 @@ open class SecurityConfig : WebSecurityConfigurerAdapter() {
             builder.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
             builder.redirectUriTemplate("{baseUrl}/login/oauth2/code/{registrationId}")
             builder.scope("email")
-            builder.authorizationUri("https://oauth.vk.com/authorize")
+            builder.authorizationUri("https://oauth.vk.com/authorize?v=5.95")
             builder.tokenUri("https://oauth.vk.com/access_token")
-            builder.userInfoUri("https://api.vk.com/method/users.get")
-            builder.userNameAttributeName("code")
-            builder.clientName("Vk")
-
-
+            builder.userInfoUri("https://api.vk.com/method/users.get?user_id={user_id}&v=5.95&access_token="+"cdada599cdada599cdada599e4cdcbdeedccdadcdada5999611768fd68f2d9c68bf4cdb")
+            builder.userNameAttributeName("user_id")
+            builder.clientName("vk")
+            builder.registrationId("vk");
             return builder
                     .clientId(clientId).clientSecret(clientSecret).build();
         }
