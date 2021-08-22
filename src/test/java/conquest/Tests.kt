@@ -10,7 +10,7 @@ import java.io.File
 
 
 class Tests{
-    @Test
+   // @Test
     fun test(){
         val key = "Sample"
         val image = ImageIO.read(File("c:/tmp/orig.jpg"))

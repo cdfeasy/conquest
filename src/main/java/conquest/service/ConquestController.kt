@@ -18,7 +18,6 @@ import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
 import com.google.gson.Gson
 import com.nimbusds.jose.util.StandardCharset
-import javafx.beans.binding.ObjectExpression
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -51,7 +50,7 @@ class ConquestController {
         return "map"
     }
 
-    @GetMapping(value = "/map/img/{imageId}")
+    @GetMapping("/map/img/{imageId}")
     @ResponseBody
     fun helloWorld(@PathVariable imageId: String): ByteArray {
         System.out.println("show " + imageId)
@@ -80,7 +79,7 @@ class ConquestController {
         return out.toByteArray()
     }
 
-    @PostMapping(value = "/map/add/{id}")
+    @PostMapping("/map/add/{id}")
     fun add(@RequestBody body:String,@PathVariable(name = "id", required = true) id: String, model: Model):String {
         var parts=body.split("&");
         val pointJson:String=URLDecoder.decode(parts[0].substring(5),StandardCharset.UTF_8.name())
@@ -98,7 +97,7 @@ class ConquestController {
         return "redirect:/map/"+id;
     }
 
-    @PostMapping(value = "/map/edit/{id}")
+    @PostMapping("/map/edit/{id}")
     fun edit(@RequestBody body:String,@PathVariable(name = "id", required = true) id: String, model: Model):String {
         var parts=body.split("&");
         val pointJson:String=URLDecoder.decode(parts[0].substring(5),StandardCharset.UTF_8.name())
@@ -110,7 +109,7 @@ class ConquestController {
         return "redirect:/map/"+id;
     }
 
-    @PostMapping(value = "/map/remove/{id}")
+    @PostMapping( "/map/remove/{id}")
     fun delete(@RequestBody body:String,@PathVariable(name = "id", required = true) id: String, model: Model):String {
         var parts=body.split("&");
         val pointJson:String=URLDecoder.decode(parts[0].substring(5),StandardCharset.UTF_8.name())
