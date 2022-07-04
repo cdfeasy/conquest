@@ -36,7 +36,7 @@ class ConquestController {
     val om:ObjectMapper=jacksonObjectMapper();
 
 
-    @GetMapping("/map/{id}")
+    @GetMapping(value=["/map/{id}"])
     fun greeting(@PathVariable(name = "id", required = true) id: String, model: Model, principal: Principal): String {
         //(principal as OAuth2AuthenticationToken). .add(SimpleGrantedAuthority("MAP_ADMIN"))
         model.addAttribute("id", id)
@@ -50,7 +50,7 @@ class ConquestController {
         return "map"
     }
 
-    @GetMapping("/map/img/{imageId}")
+    @GetMapping(value=["/map/img/{imageId}"])
     @ResponseBody
     fun helloWorld(@PathVariable imageId: String): ByteArray {
         System.out.println("show " + imageId)
@@ -79,7 +79,7 @@ class ConquestController {
         return out.toByteArray()
     }
 
-    @PostMapping("/map/add/{id}")
+    @PostMapping(value=["/map/add/{id}"])
     fun add(@RequestBody body:String,@PathVariable(name = "id", required = true) id: String, model: Model):String {
         var parts=body.split("&");
         val pointJson:String=URLDecoder.decode(parts[0].substring(5),StandardCharset.UTF_8.name())
@@ -97,7 +97,7 @@ class ConquestController {
         return "redirect:/map/"+id;
     }
 
-    @PostMapping("/map/edit/{id}")
+    @PostMapping(value=["/map/edit/{id}"])
     fun edit(@RequestBody body:String,@PathVariable(name = "id", required = true) id: String, model: Model):String {
         var parts=body.split("&");
         val pointJson:String=URLDecoder.decode(parts[0].substring(5),StandardCharset.UTF_8.name())
@@ -109,7 +109,7 @@ class ConquestController {
         return "redirect:/map/"+id;
     }
 
-    @PostMapping( "/map/remove/{id}")
+    @PostMapping( value=["/map/remove/{id}"])
     fun delete(@RequestBody body:String,@PathVariable(name = "id", required = true) id: String, model: Model):String {
         var parts=body.split("&");
         val pointJson:String=URLDecoder.decode(parts[0].substring(5),StandardCharset.UTF_8.name())
